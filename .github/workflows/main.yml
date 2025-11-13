@@ -4,9 +4,6 @@ on:
   push:
     branches: [ main ]
 
-env:
-  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -53,31 +50,29 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-      with:
-        driver: docker
+    - name: Debug Docker Hub username
+      run: echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}"
     
-    - name: Build backend image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./backend
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_backend:latest
-        push: true
+    - name: Login to Docker Hub
+      run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
     
-    - name: Build frontend image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./frontend
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_frontend:latest
-        push: true
+    - name: Build and push backend
+      run: |
+        cd backend
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_backend:latest .
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_backend:latest
     
-    - name: Build gateway image
-      uses: docker/build-push-action@v4
-      with:
-        context: ./nginx
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_gateway:latest
-        push: true
+    - name: Build and push frontend
+      run: |
+        cd frontend
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_frontend:latest .
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_frontend:latest
+    
+    - name: Build and push gateway
+      run: |
+        cd nginx
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_gateway:latest .
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_gateway:latest
 
   deploy:
     runs-on: ubuntu-latest
