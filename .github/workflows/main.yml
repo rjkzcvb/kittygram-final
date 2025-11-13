@@ -78,12 +78,6 @@ jobs:
     if: github.ref == 'refs/heads/main'
     
     steps:
-    - name: Debug server connection
-      run: |
-        echo "Testing connection to server..."
-        ping -c 3 ${{ secrets.SERVER_HOST }} || echo "Ping failed"
-        nc -zv ${{ secrets.SERVER_HOST }} 22 || echo "SSH port check failed"
-    
     - name: Deploy to server
       uses: appleboy/ssh-action@v0.1.6
       with:
@@ -93,26 +87,15 @@ jobs:
         port: 22
         timeout: 30s
         script: |
-          echo "Connected successfully to server!"
-          whoami
-          pwd
-          ls -la
           cd ~/kittygram
-          echo "Creating .env file..."
           echo "${{ secrets.ENV_FILE }}" > .env
           echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" >> .env
-          echo "Pulling latest images..."
           docker-compose -f docker-compose.production.yml pull
-          echo "Stopping existing containers..."
           docker-compose -f docker-compose.production.yml down
-          echo "Starting new containers..."
           docker-compose -f docker-compose.production.yml up -d
           sleep 10
-          echo "Running migrations..."
           docker-compose -f docker-compose.production.yml exec -T backend python manage.py migrate
-          echo "Collecting static files..."
           docker-compose -f docker-compose.production.yml exec -T backend python manage.py collectstatic --noinput
-          echo "Deployment completed successfully!"
 
   post_deploy_tests:
     runs-on: ubuntu-latest
@@ -122,16 +105,7 @@ jobs:
     steps:
     - name: Run post-deploy tests
       run: |
+        echo "✅ Deployment completed successfully!"
+        echo "📱 Application URL: ${{ secrets.KITTYGRAM_DOMAIN }}"
         echo "Running post-deploy tests..."
-        curl -f ${{ secrets.KITTYGRAM_DOMAIN }} || echo "Application not reachable yet"
-    
-    - name: Send Telegram notification
-      uses: appleboy/telegram-action@master
-      with:
-        to: ${{ secrets.TELEGRAM_TO }}
-        token: ${{ secrets.TELEGRAM_TOKEN }}
-        message: |
-          🚀 Kittygram успешно обновлен!
-          Репозиторий: ${{ github.repository }}
-          Коммит: ${{ github.sha }}
-          Ссылка: ${{ secrets.KITTYGRAM_DOMAIN }}
+        curl -f ${{ secrets.KITTYGRAM_DOMAIN }} && echo "✅ Application is reachable" || echo "❌ Application is not reachable"
