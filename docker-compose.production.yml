@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    restart: always
+
+  backend:
+    build: ./backend
+    volumes:
+      - static_volume:/app/static
+      - media_volume:/app/media
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    restart: always
+
+  frontend:
+    build: ./frontend
+    volumes:
+      - static_volume:/app/build/static
+    restart: always
+
+  gateway:
+    build: ./nginx
+    ports:
+      - "9000:80"
+    volumes:
+      - static_volume:/static
+      - media_volume:/media
+    depends_on:
+      - backend
+      - frontend
+    restart: always
+
+volumes:
+  pg_data:
+  static_volume:
+  media_volume:
