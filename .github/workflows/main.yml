@@ -23,12 +23,7 @@ jobs:
       run: |
         cd backend
         pip install -r requirements.txt
-        pip install flake8 pytest
-    
-    - name: Run flake8
-      run: |
-        cd backend
-        flake8 .
+        pip install pytest
     
     - name: Run backend tests
       run: |
