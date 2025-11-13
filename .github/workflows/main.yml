@@ -55,27 +55,29 @@ jobs:
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
+      with:
+        driver: docker
     
     - name: Build backend image
-      run: |
-        docker build -t $DOCKERHUB_USERNAME/kittygram_backend:latest ./backend
+      uses: docker/build-push-action@v4
+      with:
+        context: ./backend
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_backend:latest
+        push: true
     
     - name: Build frontend image
-      run: |
-        docker build -t $DOCKERHUB_USERNAME/kittygram_frontend:latest ./frontend
+      uses: docker/build-push-action@v4
+      with:
+        context: ./frontend
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_frontend:latest
+        push: true
     
     - name: Build gateway image
-      run: |
-        docker build -t $DOCKERHUB_USERNAME/kittygram_gateway:latest ./nginx
-    
-    - name: Login to Docker Hub
-      run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-    
-    - name: Push images
-      run: |
-        docker push $DOCKERHUB_USERNAME/kittygram_backend:latest
-        docker push $DOCKERHUB_USERNAME/kittygram_frontend:latest
-        docker push $DOCKERHUB_USERNAME/kittygram_gateway:latest
+      uses: docker/build-push-action@v4
+      with:
+        context: ./nginx
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/kittygram_gateway:latest
+        push: true
 
   deploy:
     runs-on: ubuntu-latest
