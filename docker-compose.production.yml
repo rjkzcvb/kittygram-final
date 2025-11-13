@@ -10,9 +10,38 @@ services:
     restart: always
 
   backend:
-    build: ./backend
+    image: rjkzcvb/kittygram_backend:latest
     volumes:
-      - static_volume:/app/static
+      - backend_static:/app/static
+      - media_volume:/app/media
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    restart: always
+
+
+
+
+q
+
+exit
+cat > docker-compose.production.yml << 'EOF'
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    restart: always
+
+  backend:
+    image: rjkzcvb/kittygram_backend:latest
+    volumes:
+      - backend_static:/app/static
       - media_volume:/app/media
     depends_on:
       - postgres
@@ -21,17 +50,18 @@ services:
     restart: always
 
   frontend:
-    build: ./frontend
+    image: rjkzcvb/kittygram_frontend:latest
     volumes:
-      - static_volume:/app/build/static
+      - frontend_static:/app/build
     restart: always
 
   gateway:
-    build: ./nginx
+    image: rjkzcvb/kittygram_gateway:latest
     ports:
       - "9000:80"
     volumes:
-      - static_volume:/static
+      - backend_static:/backend_static
+      - frontend_static:/frontend_static
       - media_volume:/media
     depends_on:
       - backend
@@ -40,5 +70,6 @@ services:
 
 volumes:
   pg_data:
-  static_volume:
+  backend_static:
+  frontend_static:
   media_volume:
