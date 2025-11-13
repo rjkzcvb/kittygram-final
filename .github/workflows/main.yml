@@ -53,26 +53,29 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
     - name: Build backend image
       run: |
-        docker build -t $DOCKERHUB_USERNAME/kittygram_backend ./backend
+        docker build -t $DOCKERHUB_USERNAME/kittygram_backend:latest ./backend
     
     - name: Build frontend image
       run: |
-        docker build -t $DOCKERHUB_USERNAME/kittygram_frontend ./frontend
+        docker build -t $DOCKERHUB_USERNAME/kittygram_frontend:latest ./frontend
     
     - name: Build gateway image
       run: |
-        docker build -t $DOCKERHUB_USERNAME/kittygram_gateway ./nginx
+        docker build -t $DOCKERHUB_USERNAME/kittygram_gateway:latest ./nginx
     
     - name: Login to Docker Hub
       run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
     
     - name: Push images
       run: |
-        docker push $DOCKERHUB_USERNAME/kittygram_backend
-        docker push $DOCKERHUB_USERNAME/kittygram_frontend
-        docker push $DOCKERHUB_USERNAME/kittygram_gateway
+        docker push $DOCKERHUB_USERNAME/kittygram_backend:latest
+        docker push $DOCKERHUB_USERNAME/kittygram_frontend:latest
+        docker push $DOCKERHUB_USERNAME/kittygram_gateway:latest
 
   deploy:
     runs-on: ubuntu-latest
