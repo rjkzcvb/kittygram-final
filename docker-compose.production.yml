@@ -30,9 +30,6 @@ services:
     image: rjkzcvb/kittygram_gateway:latest
     ports:
       - "9000:80"
-    volumes:
-      - static_volume:/static
-      - media_volume:/media
     depends_on:
       - backend
       - frontend
