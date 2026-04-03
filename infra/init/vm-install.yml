@@ -1,0 +1,22 @@
+#cloud-config
+ssh_pwauth: no
+
+users:
+  - name: yc-user
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${SSH_KEY}
+
+packages:
+  - docker.io
+  - docker-compose
+  - curl
+  - git
+
+runcmd:
+  - systemctl enable docker
+  - systemctl start docker
+  - usermod -aG docker yc-user
+  - curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  - chmod +x /usr/local/bin/docker-compose
